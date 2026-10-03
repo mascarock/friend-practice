@@ -1,27 +1,33 @@
-# Friend Practice
+# Presupuesto local
 
-A local practice partner for one person. You describe who it is for — their name, what they are trying to get better at, and what to avoid — and the app runs a short, patient session.
+App local para **Paola** (marketing): ver el restante de un presupuesto **aprobado** en tiempo real, sin tocar Power BI y sin sacar datos del ordenador.
 
-The partner is Google's open-weight Gemma, reached through Ollama on your machine. The core loop does not call a closed API.
+El aprobado vive hoy en Power BI. Esta app **no se conecta a Power BI**. Exportas un CSV, lo sueltas aquí, anotas el gasto en este navegador y el restante se actualiza al momento.
 
-This project was started on 3 October 2026 for the DEV Hacktoberfest Weekend Challenge (theme: Build for a Friend).
+## Tres reglas
 
-## What you get
+1. **No inventar cifras.** Solo existen los números del CSV aprobado y del registro local de gasto. Si un número no está ahí, la lectura dice que no lo sabe.
+2. **No cambiar el presupuesto aprobado.** El CSV es de solo lectura. Puedes anotar gasto o cargar otra exportación; no puedes editar una partida aprobada.
+3. **Nada sale de este ordenador.** Sin nube, sin sincronizar, sin API cerrada. Gemma, si la usas, habla solo con Ollama en `127.0.0.1`.
 
-- A single local web page
-- A three-attempt practice session
-- An honest error if Gemma is not actually running
-- Tests for the parts that do not need the model
+## Qué hace
 
-The included profile is labeled **sample data**. It is not a real person, quote, or testimonial.
+- Importa un CSV local del presupuesto aprobado.
+- Anota gasto solo contra partidas que ya existen en ese CSV.
+- Recalcula restante y desvío al momento.
+- Ofrece una lectura con **Gemma** (`gemma3:1b` vía Ollama) anclada a esas cifras. Si Ollama no está, el presupuesto y el gasto siguen funcionando.
 
-## Requirements
+## Requisitos
 
-- Node.js 22 or newer
+- Node.js 20 o superior
 - npm
-- For a live session: [Ollama](https://ollama.com) and the `gemma3:1b` model
 
-## Non-model path (no Ollama needed)
+Opcional, solo para la lectura con Gemma:
+
+- [Ollama](https://ollama.com)
+- el modelo `gemma3:1b`
+
+## Arrancar en un portátil
 
 ```bash
 npm install
@@ -29,58 +35,76 @@ npm test
 npm run dev
 ```
 
-Then open [http://127.0.0.1:43173](http://127.0.0.1:43173) or [http://localhost:43173](http://localhost:43173).
+Abre [http://127.0.0.1:43127](http://127.0.0.1:43127).
 
-You can fill in a person, load the labeled sample profile, and see validation. If you start a session without Ollama, the app reports that Gemma is not reachable. It will not invent a transcript.
+1. Pulsa **Cargar CSV de ejemplo** o suelta tu exportación de Power BI.
+2. El banner **DATOS DE EJEMPLO** aparece solo con la muestra. No es el presupuesto real de Paola.
+3. Anota un gasto y mira cómo cambia el restante.
+4. Si quieres la lectura, instala Gemma (abajo) y pulsa **Leer las cifras locales**.
 
-## Gemma path (live local model)
+El gasto queda en `localStorage` de este navegador. No se envía a ningún servidor remoto.
 
-1. Install Ollama from [https://ollama.com](https://ollama.com).
-2. Start the Ollama app or daemon.
-3. Pull the small instruct model:
+## Formato del CSV
 
-   ```bash
-   ollama pull gemma3:1b
-   ```
+Cabecera esperada (Power BI → CSV):
 
-4. Confirm it answers locally:
+```csv
+origen,categoria,partida,presupuesto_aprobado
+DATOS DE EJEMPLO,Publicidad digital,Google Ads,5000
+```
 
-   ```bash
-   ollama run gemma3:1b "Say hello in one sentence."
-   ```
+- Separador `,` o `;`
+- Decimales con `.` o con `,` (también `1.200,50`)
+- Columnas mínimas: `categoria`, `partida`, `presupuesto_aprobado`
+- `origen` es opcional. Si dice `DATOS DE EJEMPLO`, la app lo etiqueta así.
+- Las líneas que empiezan por `#` se ignoran.
 
-5. From this repo:
+Hay una muestra en [`public/sample-presupuesto.csv`](public/sample-presupuesto.csv). Está marcada como **DATOS DE EJEMPLO**. No inventa el presupuesto real de Paola.
 
-   ```bash
-   npm install
-   npm run dev
-   ```
+## Gemma (opcional)
 
-6. Open [http://127.0.0.1:43173](http://127.0.0.1:43173) or [http://localhost:43173](http://localhost:43173), describe the person, and start a session.
+La lectura no es un adorno: es el modelo el que resume qué está desbordado, qué queda y qué mirar ahora. El código ancla la respuesta a las cifras locales y descarta cualquier número que no esté en el CSV o en el log.
 
-Optional environment variables:
+Esta máquina puede no tener Ollama. En ese caso verás un aviso real, no una transcripción inventada.
 
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `OLLAMA_HOST` | `http://127.0.0.1:11434` | Ollama base URL |
-| `OLLAMA_MODEL` | `gemma3:1b` | Open Gemma instruct build |
+```bash
+# 1. Instala Ollama desde https://ollama.com
+# 2. Descarga el modelo abierto
+ollama pull gemma3:1b
+# 3. Deja Ollama en marcha (suele escuchar en 127.0.0.1:11434)
+# 4. Recarga la app y pulsa «Leer las cifras locales»
+```
 
-The app posts to Ollama's `/api/chat` endpoint. That path is implemented in `src/lib/ollama.ts` and used by `POST /api/practice`.
+Si el navegador no puede hablar con Ollama, arranca Ollama permitiendo el origen local:
 
-## Honesty about this environment
+```bash
+OLLAMA_ORIGINS=http://127.0.0.1:43127 ollama serve
+```
 
-This workspace did not have Ollama or a Gemma download available. The Gemma call path is real. The rest of the app is covered by tests. No saved model transcript is presented as a live run.
+La app llama a `http://127.0.0.1:11434` desde este mismo ordenador. No hay clave de API cerrada ni llamada a la nube.
 
-## Tests
+## Tests (sin modelo)
 
 ```bash
 npm test
 ```
 
-These cover profile validation, session turns, prompt construction, the Ollama request/response helpers (with a fake `fetch`), and the practice loop with an injected chat function.
+Cubren:
 
-## License
+- restante = aprobado − gastado (por partida y total)
+- el aprobado no cambia al anotar o borrar gasto
+- no se aceptan partidas inventadas
+- un texto con cifras que no están en el CSV/log se rechaza
 
-MIT. See [LICENSE](./LICENSE).
+## Scripts
 
-A draft DEV post lives in [POST.md](./POST.md). It has not been published.
+| Comando | Qué hace |
+| --- | --- |
+| `npm run dev` | Servidor de desarrollo en el puerto 43127 |
+| `npm test` | Tests del camino sin modelo |
+| `npm run build` | Build de producción |
+| `npm start` | Servidor de producción en el puerto 43127 |
+
+## Privacidad
+
+No hay cuenta, no hay base de datos remota, no hay telemetría. Si cierras el navegador, los datos siguen en este perfil hasta que pulses **Borrar datos locales**.

@@ -1,5 +1,5 @@
-import { PracticeApp } from "@/components/practice-app";
+import { Dashboard } from "@/components/dashboard";
 
-export default function Home() {
-  return <PracticeApp />;
+export default function HomePage() {
+  return <Dashboard />;
 }

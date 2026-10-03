@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { DM_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-sans",
+const dmSans = DM_Sans({
+  variable: "--font-dm",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Friend Practice",
+  title: "Presupuesto local · para Paola",
   description:
-    "A local practice partner for one person, powered by open-weight Gemma on Ollama.",
+    "Control local del presupuesto aprobado exportado de Power BI. El gasto se anota en este ordenador. Nada se envía fuera.",
 };
 
 export default function RootLayout({
@@ -25,13 +25,8 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-full flex-col bg-background text-foreground">
-        {children}
-      </body>
+    <html lang="es">
+      <body className={`${dmSans.variable} ${fraunces.variable} antialiased`}>{children}</body>
     </html>
   );
 }

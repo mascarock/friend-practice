@@ -1,0 +1,8 @@
+# DATOS DE EJEMPLO — no es el presupuesto real de Paola
+# Formato de exportación local (Power BI → CSV). Esta app no se conecta a Power BI.
+origen,categoria,partida,presupuesto_aprobado
+DATOS DE EJEMPLO,Publicidad digital,Google Ads,5000
+DATOS DE EJEMPLO,Publicidad digital,Meta Ads,3200
+DATOS DE EJEMPLO,Eventos,Feria Q4,4500
+DATOS DE EJEMPLO,Contenido,Producción de vídeo,2800
+DATOS DE EJEMPLO,Herramientas,Software de marketing,1200
