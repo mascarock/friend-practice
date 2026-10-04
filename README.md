@@ -4,6 +4,20 @@ A local budget app for Paola in marketing. Import an approved CSV, record spendi
 
 The interface uses a near-black background, white type, large totals, thin rules, and open space. All interface copy, validation messages, sample data, and Gemma instructions are in English.
 
+## Context
+
+Local Computer is a Mac-only budget companion for a marketer (Paola) who wants spend checked against an approved budget without the numbers leaving the computer. The demo uses labeled sample data, not her real budget. The approved total in the sample stays 16,700.
+
+Five assistants, each a chat:
+
+- Ledger reads the CSV.
+- Clerk logs one spend on an existing line.
+- Watcher names a line only when spent is above approved, and that math is code.
+- Remainder shows approved, spent, and remaining.
+- Note asks local Gemma (Ollama on 127.0.0.1) for one sentence and withholds it if it names the wrong item or a number that is not in the tool result.
+
+In the published demo only the Q4 trade fair is over, by 200. The video is the color walkthrough: [Local-Computer-color-walkthrough.mp4](docs/Local-Computer-color-walkthrough.mp4). The 11:21 proof screenshots are linked under [Local Computer for macOS](#local-computer-for-macos).
+
 ## Run locally
 
 Requires Node.js 20 or later and npm.
@@ -86,7 +100,8 @@ The Mac workspace is a liquid-glass dark UI: rounded frosted near-black
 panels and thin light edges. Each assistant has its own accent and a small idle
 motion: Ledger blue, Clerk green, Watcher orange, Remainder teal, and Note
 purple. Reduced motion turns that animation off. The app window is audio-muted.
-The 11:21 color-pass screenshots are in [docs/screenshots](docs/screenshots):
+The color walkthrough video is [Local-Computer-color-walkthrough.mp4](docs/Local-Computer-color-walkthrough.mp4).
+The 11:21 color-pass screenshots that show the running app are in [docs/screenshots](docs/screenshots):
 
 1. [01-sidebar.png](docs/screenshots/01-sidebar.png) — the five assistants.
 2. [02-ledger.png](docs/screenshots/02-ledger.png) — Ledger, Meta Ads approved 3,200.
