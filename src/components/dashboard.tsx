@@ -7,12 +7,12 @@ import {
   AlertTriangle,
   CheckCircle2,
   Trash2,
-  Sparkles,
+  ArrowUpRight,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { Crew } from "@/components/crew";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,13 +29,13 @@ import { collectKnownFacts } from "@/lib/facts";
 import type { GemmaResponse } from "@/lib/gemma";
 import { GEMMA_MODEL } from "@/lib/gemma";
 import { formatMoney } from "@/lib/money";
-import { createSampleBudget, createSampleSpends, SAMPLE_CSV, SAMPLE_FILE_NAME } from "@/lib/sample";
+import { createSampleBudget, createSampleSpends, SAMPLE_FILE_NAME } from "@/lib/sample";
 import { loadLocalBudget, loadLocalSpends, saveLocalState } from "@/lib/storage";
 
 const PRESET_QUESTIONS = [
-  "¿Qué partidas están desbordadas?",
-  "¿Cuánto queda en cada partida?",
-  "¿Qué debería mirar ahora?",
+  "Which items are over budget?",
+  "How much remains for each item?",
+  "What needs attention?",
 ];
 
 type GemmaStatus = "unknown" | "ready" | "missing";
@@ -97,6 +97,9 @@ export function Dashboard() {
 
   const applyBudget = useCallback((next: ApprovedBudget, nextSpends: SpendEntry[]) => {
     setParseError(null);
+    setSpendError(null);
+    setImporte("");
+    setNota("");
     setBudget(next);
     setSpends(nextSpends);
     setLineId(next.lines[0]?.id ?? "");
@@ -109,7 +112,7 @@ export function Dashboard() {
         const next = parseApprovedBudgetCsv(text, fileName);
         applyBudget(next, []);
       } catch (error) {
-        setParseError(error instanceof Error ? error.message : "No se pudo leer el CSV.");
+        setParseError(error instanceof Error ? error.message : "Could not read the CSV.");
       }
     },
     [applyBudget],
@@ -120,7 +123,7 @@ export function Dashboard() {
       if (!file) {
         return;
       }
-      void file.text().then((text) => onCsvText(text, file.name));
+      void file.text().then((text) => onCsvText(text, file.name)).catch(() => setParseError("Could not read this local file. Try choosing it again."));
     },
     [onCsvText],
   );
@@ -150,7 +153,7 @@ export function Dashboard() {
         setNota("");
         setCoaching(null);
       } catch (error) {
-        setSpendError(error instanceof Error ? error.message : "No se pudo anotar el gasto.");
+        setSpendError(error instanceof Error ? error.message : "Could not record this spend.");
       }
     },
     [budget, importe, lineId, nota],
@@ -181,7 +184,7 @@ export function Dashboard() {
       setCoaching({
         status: "unavailable",
         reason: "ollama_unreachable",
-        detail: "Gemma no está en este ordenador. Instala Ollama y ejecuta: ollama pull gemma3:1b",
+        detail: "Gemma is unavailable on this computer. Start Ollama with gemma3:1b installed, then try again.",
       });
     } finally {
       setCoachingBusy(false);
@@ -189,427 +192,150 @@ export function Dashboard() {
   }, [facts, question]);
 
   if (!hydrated) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-16 text-sm text-[#6b6258]">Cargando el registro local…</div>
-    );
+    return <main className="shell py-24 text-sm text-neutral-400">Loading your local budget…</main>;
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
-      <header className="mb-6 flex flex-col gap-4 sm:mb-8">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone="local">Solo en este ordenador</Badge>
-          <Badge tone="locked">Presupuesto aprobado de solo lectura</Badge>
-          {budget?.isSample ? <Badge tone="sample">DATOS DE EJEMPLO</Badge> : null}
-        </div>
-        <div className="max-w-3xl">
-          <p className="text-sm font-medium uppercase tracking-[0.16em] text-[#8a6a2f]">Para Paola · marketing</p>
-          <h1 className="mt-2 font-serif text-4xl leading-tight text-[#1f1a14] sm:text-5xl">
-            Control local del presupuesto aprobado
-          </h1>
-          <p className="mt-3 max-w-2xl text-base text-[#4a433b]">
-            El aprobado vive en Power BI. Esta app no se conecta a Power BI: sueltas el CSV que exportas, anotas el
-            gasto aquí y ves el restante al momento. Nada se envía fuera de este ordenador.
-          </p>
-        </div>
+    <main className="shell">
+      <header className="masthead">
+        <a href="#" className="wordmark" aria-label="Local Budget home"><span className="brand-mark" aria-hidden="true" />LOCAL / BUDGET</a>
+        <span className="flex items-center gap-2 text-xs text-neutral-400"><Lock size={13} /> On this computer only</span>
       </header>
 
-      <section className="mb-6 grid gap-3 md:grid-cols-3">
-        <RuleCard n="01" title="No inventar cifras" body="Solo cuentan el CSV aprobado y el registro local de gasto. Si un número no está ahí, la app dice que no lo sabe." />
-        <RuleCard n="02" title="No tocar el aprobado" body="El presupuesto importado es inmutable. Puedes anotar gasto o cargar un CSV nuevo; no puedes editar una partida aprobada." />
-        <RuleCard n="03" title="Nada sale de aquí" body="Sin nube, sin sincronizar, sin API cerrada. Gemma, si está instalada, habla solo con Ollama en localhost." />
+      <section className="hero" aria-labelledby="page-title">
+        <p className="eyebrow">PAOLA / MARKETING</p>
+        <h1 id="page-title">Every figure.<br /><span className="text-neutral-500">Accounted for.</span></h1>
+        <div className="hero-bottom">
+          <p className="max-w-lg text-base leading-relaxed text-neutral-400">Load your approved budget. Log what you spend.<br className="hidden sm:block" /> See what remains, immediately. Everything stays here.</p>
+          <a href="#import" className={buttonVariants({ variant: "outline" })}>Load a local CSV <ArrowUpRight size={16} /></a>
+        </div>
       </section>
 
       {budget?.isSample ? (
-        <div
-          data-testid="sample-banner"
-          className="mb-6 rounded-xl border-2 border-[#c45c16] bg-[#fff4e8] px-4 py-3 text-[#7a3e0c]"
-        >
-          <p className="text-sm font-semibold uppercase tracking-wide">DATOS DE EJEMPLO</p>
-          <p className="text-sm">
-            Este no es el presupuesto real de Paola ni un gasto real. Es una exportación de muestra para probar el
-            bucle local. Sustitúyela por tu CSV de Power BI cuando quieras.
-          </p>
-        </div>
+        <aside data-testid="sample-banner" className="sample-banner">
+          <Badge tone="sample">SAMPLE DATA</Badge>
+          <p>This is not Paola’s real budget or real spending. Load your approved CSV to replace this sample.</p>
+        </aside>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>CSV del presupuesto aprobado</CardTitle>
-              <CardDescription>
-                Arrastra el export de Power BI. Columnas: categoria, partida, presupuesto_aprobado. El origen
-                opcional ayuda a marcar DATOS DE EJEMPLO.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <label
-                onDragOver={(event) => {
-                  event.preventDefault();
-                  setDragOver(true);
-                }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  setDragOver(false);
-                  onFile(event.dataTransfer.files[0]);
-                }}
-                className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-10 text-center transition-colors ${
-                  dragOver ? "border-[#1f1a14] bg-[#f6efe3]" : "border-[#d7ccb8] bg-[#fbf7f0]"
-                }`}
-              >
-                <Upload className="mb-3 h-6 w-6 text-[#8a6a2f]" />
-                <span className="font-medium">Suelta aquí el CSV exportado de Power BI</span>
-                <span className="mt-1 text-sm text-[#6b6258]">o haz clic para elegir un archivo local</span>
-                <input
-                  type="file"
-                  accept=".csv,text/csv"
-                  className="sr-only"
-                  onChange={(event) => onFile(event.target.files?.[0])}
-                />
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="secondary" onClick={loadSample}>
-                  Cargar CSV de ejemplo
-                </Button>
-                <a href={`/${SAMPLE_FILE_NAME}`} download={SAMPLE_FILE_NAME}>
-                  <Button type="button" variant="outline">
-                    Descargar CSV de ejemplo
-                  </Button>
-                </a>
-                {budget ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      applyBudget(budget, []);
-                    }}
-                  >
-                    Vaciar solo el gasto
-                  </Button>
-                ) : null}
-                {budget ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      setBudget(null);
-                      setSpends([]);
-                      setCoaching(null);
-                    }}
-                  >
-                    Borrar datos locales
-                  </Button>
-                ) : null}
-              </div>
-              {parseError ? <p className="text-sm text-[#9b2c2c]">{parseError}</p> : null}
-              {budget ? (
-                <p className="text-sm text-[#6b6258]">
-                  Archivo en local: <span className="font-medium text-[#1f1a14]">{budget.fileName}</span>
-                  {budget.isSample ? " · DATOS DE EJEMPLO" : " · exportación de solo lectura"}
-                </p>
-              ) : (
-                <p className="text-sm text-[#6b6258]">Todavía no hay un presupuesto aprobado en este ordenador.</p>
-              )}
-            </CardContent>
-          </Card>
+      <section className="metrics" aria-label="Budget totals" aria-live="polite" aria-atomic="true">
+        <Kpi label="Approved" value={ledger ? formatMoney(ledger.totalAprobado) : "—"} hint="Read-only. Always unchanged." locked />
+        <Kpi label="Spent" value={ledger ? formatMoney(ledger.totalGastado) : "—"} hint="From your local spend log" />
+        <Kpi label="Remaining" value={ledger ? formatMoney(ledger.totalRestante) : "—"} hint={ledger && ledger.totalRestante < 0 ? "Total spending exceeds approval" : "Approved minus spent"} />
+        <Kpi label="Over budget" value={ledger ? formatMoney(ledger.totalDesvio) : "—"} hint="Overspend across individual items" />
+      </section>
 
-          {ledger ? (
-            <>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <Kpi label="Aprobado" value={formatMoney(ledger.totalAprobado)} hint="Cerrado. No se edita." locked />
-                <Kpi label="Gastado" value={formatMoney(ledger.totalGastado)} hint="Suma del registro local" />
-                <Kpi
-                  label="Restante"
-                  value={formatMoney(ledger.totalRestante)}
-                  hint="Aprobado menos gastado"
-                  tone={ledger.totalRestante < 0 ? "over" : "ok"}
-                />
-                <Kpi
-                  label="Desvío"
-                  value={formatMoney(ledger.totalDesvio)}
-                  hint="Solo lo que ya pasó del aprobado"
-                  tone={ledger.totalDesvio > 0 ? "over" : "neutral"}
-                />
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Partidas</CardTitle>
-                  <CardDescription>El restante se recalcula en el momento. El aprobado no cambia.</CardDescription>
-                </CardHeader>
-                <CardContent className="overflow-x-auto">
-                  <table className="w-full min-w-[640px] text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-[#e2d8c8] text-[#6b6258]">
-                        <th className="py-2 pr-3 font-medium">Partida</th>
-                        <th className="py-2 pr-3 font-medium">Aprobado</th>
-                        <th className="py-2 pr-3 font-medium">Gastado</th>
-                        <th className="py-2 pr-3 font-medium">Restante</th>
-                        <th className="py-2 font-medium">Uso</th>
+      <div className="workspace">
+        <div className="min-w-0">
+          <section className="section" aria-labelledby="items-title">
+            <SectionHeading number="01" title="Budget items" id="items-title" description="Remaining updates with every entry. Approved amounts stay fixed." />
+            {ledger ? (
+              <div className="table-scroll" tabIndex={0} role="region" aria-label="Approved budget items">
+                <table>
+                  <thead><tr><th>Item</th><th>Approved</th><th>Spent</th><th>Remaining</th><th>Used</th></tr></thead>
+                  <tbody>
+                    {ledger.lines.map((row) => (
+                      <tr key={row.line.id}>
+                        <td><p className="font-medium text-neutral-100">{row.line.partida}</p><p className="mt-1 text-xs text-neutral-400">{row.line.categoria}</p>{budget?.isSample ? <span className="mt-2 block text-[10px] tracking-widest text-neutral-400">SAMPLE DATA</span> : null}</td>
+                        <td>{formatMoney(row.line.aprobado)}</td>
+                        <td>{formatMoney(row.gastado)}</td>
+                        <td className={row.restante < 0 ? "font-semibold text-white" : ""}>{formatMoney(row.restante)}{row.restante < 0 ? <span className="mt-1 block text-[10px] uppercase tracking-wide">Over budget</span> : null}</td>
+                        <td><span className="text-xs">{row.porcentajeUso.toFixed(2)}%</span><div className="usage-track"><div style={{ width: `${Math.min(100, Math.max(0, row.porcentajeUso))}%` }} /></div></td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {ledger.lines.map((row) => {
-                        const over = row.restante < 0;
-                        const width = Math.min(100, Math.max(0, row.porcentajeUso));
-                        return (
-                          <tr key={row.line.id} className="border-b border-[#f0e9dc] last:border-0">
-                            <td className="py-3 pr-3">
-                              <div className="font-medium">{row.line.partida}</div>
-                              <div className="text-xs text-[#6b6258]">{row.line.categoria}</div>
-                              {row.line.origen === "DATOS DE EJEMPLO" ? (
-                                <div className="mt-1">
-                                  <Badge tone="sample">DATOS DE EJEMPLO</Badge>
-                                </div>
-                              ) : null}
-                            </td>
-                            <td className="py-3 pr-3 tabular-nums">
-                              <span className="inline-flex items-center gap-1">
-                                <Lock className="h-3 w-3 text-[#8a6a2f]" />
-                                {formatMoney(row.line.aprobado)}
-                              </span>
-                            </td>
-                            <td className="py-3 pr-3 tabular-nums">{formatMoney(row.gastado)}</td>
-                            <td className={`py-3 pr-3 tabular-nums ${over ? "font-semibold text-[#9b2c2c]" : "text-[#1f5c45]"}`}>
-                              {formatMoney(row.restante)}
-                            </td>
-                            <td className="py-3">
-                              <div className="mb-1 text-xs text-[#6b6258]">{row.porcentajeUso.toFixed(2)}%</div>
-                              <div className="h-2 overflow-hidden rounded-full bg-[#efe7d8]">
-                                <div
-                                  className={`h-full ${over ? "bg-[#9b2c2c]" : "bg-[#1f5c45]"}`}
-                                  style={{ width: `${width}%` }}
-                                />
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <Card>
-              <CardContent className="py-10 text-sm text-[#6b6258]">
-                Carga un CSV aprobado o el archivo de ejemplo para ver el restante.
-              </CardContent>
-            </Card>
-          )}
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="empty-state"><p className="text-2xl tracking-tight text-neutral-200">Start with the approved numbers.</p><p className="mt-3 max-w-sm text-sm leading-relaxed text-neutral-400">Load a local CSV below, or explore the clearly labeled sample. No budget figures appear until you choose a source.</p><a href="#import" className="mt-6 inline-flex items-center gap-2 text-sm underline underline-offset-4">Choose a source <ArrowUpRight size={14} /></a></div>
+            )}
+          </section>
+
+          <section id="import" className="section scroll-mt-8" aria-labelledby="import-title">
+            <SectionHeading number="02" title="Your approved CSV" id="import-title" description="Read locally. Stored in this browser. Loading a CSV replaces the current budget and clears its spend log." />
+            <label
+              onDragOver={(event) => { event.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(event) => { event.preventDefault(); setDragOver(false); onFile(event.dataTransfer.files[0]); }}
+              className={`upload-zone ${dragOver ? "is-dragging" : ""}`}
+            >
+              <Upload size={22} strokeWidth={1.3} />
+              <span className="mt-4 text-base">Drop your approved CSV here</span>
+              <span className="mt-2 text-xs text-neutral-400">or choose a file from this computer</span>
+              <input type="file" accept=".csv,text/csv" className="sr-only" aria-label="Choose approved budget CSV" onChange={(event) => { onFile(event.target.files?.[0]); event.target.value = ""; }} />
+            </label>
+            <p className="mt-4 text-xs leading-relaxed text-neutral-400">Columns: <code>category, item, approved_budget</code>. Optional: <code>source</code>. Existing Spanish column headers are also supported.</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button type="button" variant="secondary" onClick={loadSample}>Load sample data</Button>
+              <a className={buttonVariants({ variant: "outline" })} href={`/${SAMPLE_FILE_NAME}`} download={SAMPLE_FILE_NAME}>Download sample CSV <ArrowUpRight size={14} /></a>
+            </div>
+            {parseError ? <p role="alert" className="error-message">{parseError}</p> : null}
+            <p className="mt-5 break-all text-xs text-neutral-400">{budget ? <>Local file: <span className="text-neutral-200">{budget.fileName}</span>{budget.isSample ? " · SAMPLE DATA" : " · Read-only"}</> : "No approved budget loaded."}</p>
+            {budget ? <div className="mt-5 flex flex-wrap gap-4"><Button type="button" size="sm" variant="ghost" onClick={() => applyBudget(budget, [])}>Clear spend log</Button><Button type="button" size="sm" variant="ghost" onClick={() => { setBudget(null); setSpends([]); setCoaching(null); setParseError(null); setSpendError(null); }}>Delete local data</Button></div> : null}
+          </section>
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Anotar gasto</CardTitle>
-              <CardDescription>Solo partidas que ya existen en el CSV. El aprobado no se toca.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {budget && ledger ? (
-                <form className="space-y-3" onSubmit={submitSpend}>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="partida">Partida aprobada</Label>
-                    <select
-                      id="partida"
-                      value={lineId}
-                      onChange={(event) => setLineId(event.target.value)}
-                      className="flex h-10 w-full rounded-md border border-[#d7ccb8] bg-white px-3 text-sm"
-                    >
-                      {budget.lines.map((line) => (
-                        <option key={line.id} value={line.id}>
-                          {line.categoria} — {line.partida}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="importe">Importe</Label>
-                    <Input
-                      id="importe"
-                      inputMode="decimal"
-                      placeholder="0,00"
-                      value={importe}
-                      onChange={(event) => setImporte(event.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="nota">Nota (opcional)</Label>
-                    <Input id="nota" value={nota} onChange={(event) => setNota(event.target.value)} />
-                  </div>
-                  {spendError ? <p className="text-sm text-[#9b2c2c]">{spendError}</p> : null}
-                  <Button type="submit" className="w-full">
-                    <Wallet className="h-4 w-4" />
-                    Registrar en este ordenador
-                  </Button>
-                </form>
-              ) : (
-                <p className="text-sm text-[#6b6258]">Primero hace falta el CSV aprobado.</p>
-              )}
-            </CardContent>
-          </Card>
+        <div className="min-w-0">
+          <section className="section" aria-labelledby="spend-title">
+            <SectionHeading number="03" title="Log spend" id="spend-title" description="Record spending against an approved item." />
+            {budget && ledger ? (
+              <form className="space-y-5" onSubmit={submitSpend}>
+                <div className="space-y-2"><Label htmlFor="partida">Approved item</Label><select id="partida" value={lineId} onChange={(event) => setLineId(event.target.value)} className="field">{budget.lines.map((line) => <option key={line.id} value={line.id}>{line.categoria} — {line.partida}</option>)}</select></div>
+                <div className="space-y-2"><Label htmlFor="importe">Amount</Label><Input id="importe" inputMode="decimal" placeholder="0.00" value={importe} onChange={(event) => setImporte(event.target.value)} required /></div>
+                <div className="space-y-2"><Label htmlFor="nota">Note <span className="text-neutral-500">(optional)</span></Label><Input id="nota" value={nota} onChange={(event) => setNota(event.target.value)} placeholder="What was this for?" /></div>
+                {spendError ? <p role="alert" className="error-message">{spendError}</p> : null}
+                <Button type="submit" className="w-full"><Wallet size={16} /> Save spend locally <ArrowUpRight size={16} className="ml-auto" /></Button>
+                {budget.isSample ? <p className="text-xs text-neutral-400">Entries in this budget are labeled sample data.</p> : null}
+              </form>
+            ) : <p className="py-6 text-sm text-neutral-400">Load an approved CSV to record spending.</p>}
+          </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Registro local de gasto</CardTitle>
-              <CardDescription>
-                {spends.length === 0 ? "Todavía no hay movimientos." : `${spends.length} apunte(s) guardados en este navegador.`}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {spends.length === 0 ? (
-                <p className="text-sm text-[#6b6258]">Cuando anotes un gasto, el restante de arriba cambia al momento.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {spends.map((spend) => {
-                    const line = budget?.lines.find((item) => item.id === spend.lineId);
-                    return (
-                      <li key={spend.id} className="flex items-start justify-between gap-3 rounded-lg bg-[#fbf7f0] px-3 py-2">
-                        <div>
-                          <p className="text-sm font-medium">
-                            {line ? `${line.partida}` : spend.lineId} · {formatMoney(spend.importe)}
-                          </p>
-                          <p className="text-xs text-[#6b6258]">
-                            {spend.timestamp.slice(0, 10)}
-                            {spend.nota ? ` · ${spend.nota}` : ""}
-                          </p>
-                          {spend.isSample ? (
-                            <div className="mt-1">
-                              <Badge tone="sample">DATOS DE EJEMPLO</Badge>
-                            </div>
-                          ) : null}
-                        </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => budget && setSpends(removeSpend(budget, spends, spend.id))}
-                          aria-label="Borrar gasto"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <CardTitle>Lectura con Gemma</CardTitle>
-                {gemmaStatus === "ready" ? <Badge tone="ok">{GEMMA_MODEL} en local</Badge> : <Badge tone="neutral">{GEMMA_MODEL} no detectada</Badge>}
-              </div>
-              <CardDescription>
-                Gemma lee solo las cifras de este CSV y de este registro. Si una cifra no está, debe decir que no lo
-                sabe. Sin Ollama, el presupuesto y el gasto siguen funcionando.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {PRESET_QUESTIONS.map((item) => (
-                  <Button key={item} type="button" size="sm" variant={question === item ? "default" : "secondary"} onClick={() => setQuestion(item)}>
-                    {item}
-                  </Button>
-                ))}
-              </div>
-              <Textarea value={question} onChange={(event) => setQuestion(event.target.value)} />
-              <Button type="button" className="w-full" onClick={() => void askGemma()} disabled={!facts || coachingBusy}>
-                <Sparkles className="h-4 w-4" />
-                {coachingBusy ? "Consultando Ollama en localhost…" : "Leer las cifras locales"}
-              </Button>
-              <CoachingResult coaching={coaching} />
-            </CardContent>
-          </Card>
+          <section className="section" aria-labelledby="log-title">
+            <SectionHeading number="04" title="Spend log" id="log-title" description={spends.length === 0 ? "No spending recorded yet." : `${spends.length} ${spends.length === 1 ? "entry" : "entries"} saved in this browser.`} />
+            {spends.length === 0 ? <p className="text-sm leading-relaxed text-neutral-400">Every entry updates the remaining amount immediately.</p> : (
+              <ul>{spends.map((spend) => {
+                const line = budget?.lines.find((item) => item.id === spend.lineId);
+                return <li key={spend.id} className="spend-entry"><div className="min-w-0 flex-1"><div className="flex flex-wrap justify-between gap-2 text-sm"><span>{line?.partida ?? spend.lineId}</span><span className="tabular-nums">{formatMoney(spend.importe)}</span></div><p className="mt-2 break-words text-xs leading-relaxed text-neutral-400">{spend.timestamp.slice(0, 10)}{spend.nota ? ` · ${spend.nota}` : ""}</p>{spend.isSample ? <span className="mt-2 block text-[10px] tracking-widest text-neutral-400">SAMPLE DATA</span> : null}</div><Button type="button" size="sm" variant="ghost" onClick={() => { if (budget) { setSpends(removeSpend(budget, spends, spend.id)); setCoaching(null); } }} aria-label={`Delete spend for ${line?.partida ?? "item"}`}><Trash2 size={14} /></Button></li>;
+              })}</ul>
+            )}
+          </section>
         </div>
       </div>
-    </div>
+
+      <section className="gemma-section" aria-labelledby="gemma-title">
+        <div><p className="eyebrow">LOCAL INTELLIGENCE / OPTIONAL</p><h2 id="gemma-title" className="mt-4 text-4xl tracking-tight">Read the numbers.<br /><span className="text-neutral-500">With Gemma.</span></h2><p className="mt-5 max-w-sm text-sm leading-relaxed text-neutral-400">Gemma uses only your CSV and spend log through Ollama on this computer. Unknown figures stay unknown. Your budget works without it.</p><div className="mt-6"><Badge tone="neutral">{gemmaStatus === "unknown" ? "Checking local Gemma…" : gemmaStatus === "ready" ? `${GEMMA_MODEL} · Available locally` : `${GEMMA_MODEL} · Not detected`}</Badge></div></div>
+        <div className="min-w-0 space-y-5">
+          <div className="flex flex-wrap gap-2">{PRESET_QUESTIONS.map((item) => <Button key={item} type="button" size="sm" variant={question === item ? "default" : "outline"} onClick={() => setQuestion(item)}>{item}</Button>)}</div>
+          <div className="space-y-2"><Label htmlFor="gemma-question">Your question</Label><Textarea id="gemma-question" value={question} onChange={(event) => setQuestion(event.target.value)} /></div>
+          <Button type="button" onClick={() => void askGemma()} disabled={!facts || coachingBusy || !question.trim()}>{coachingBusy ? "Reading with local Gemma…" : "Ask local Gemma"}<ArrowUpRight size={16} /></Button>
+          <CoachingResult coaching={coaching} />
+        </div>
+      </section>
+
+      <details className="section"><summary className="cursor-pointer text-sm">Open the local budget crew</summary><div className="mt-8"><Crew /></div></details>
+
+      <footer className="footer"><span>LOCAL / BUDGET</span><p>Approved stays fixed. Spending stays local. No cloud connection.</p></footer>
+    </main>
   );
 }
 
-function RuleCard({ n, title, body }: { n: string; title: string; body: string }) {
-  return (
-    <div className="rounded-xl border border-[#e2d8c8] bg-[#fffdf8] p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a6a2f]">{n}</p>
-      <h2 className="mt-1 font-serif text-lg">{title}</h2>
-      <p className="mt-1 text-sm text-[#4a433b]">{body}</p>
-    </div>
-  );
+function SectionHeading({ number, title, description, id }: { number: string; title: string; description: string; id: string }) {
+  return <div className="section-heading"><p className="eyebrow">{number} /</p><h2 id={id} className="mt-3 text-2xl tracking-tight">{title}</h2><p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-400">{description}</p></div>;
 }
 
-function Kpi({
-  label,
-  value,
-  hint,
-  locked,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string;
-  hint: string;
-  locked?: boolean;
-  tone?: "neutral" | "ok" | "over";
-}) {
-  return (
-    <div className="rounded-xl border border-[#e2d8c8] bg-[#fffdf8] p-4">
-      <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-[#6b6258]">
-        {locked ? <Lock className="h-3 w-3 text-[#8a6a2f]" /> : null}
-        {label}
-      </p>
-      <p
-        className={`mt-2 font-serif text-3xl tabular-nums ${
-          tone === "over" ? "text-[#9b2c2c]" : tone === "ok" ? "text-[#1f5c45]" : "text-[#1f1a14]"
-        }`}
-      >
-        {value}
-      </p>
-      <p className="mt-1 text-xs text-[#6b6258]">{hint}</p>
-    </div>
-  );
+function Kpi({ label, value, hint, locked }: { label: string; value: string; hint: string; locked?: boolean }) {
+  return <div className="metric"><p className="eyebrow flex items-center gap-2">{label}{locked ? <Lock size={11} /> : null}</p><p className="metric-value">{value}</p><p className="mt-3 text-xs leading-relaxed text-neutral-400">{hint}</p></div>;
 }
 
 function CoachingResult({ coaching }: { coaching: GemmaResponse | null }) {
   if (!coaching) {
-    return (
-      <p className="text-sm text-[#6b6258]">
-        No hay transcripción inventada. Si Gemma no está instalada, verás un aviso real, no un análisis falso.
-      </p>
-    );
+    return <p className="text-xs leading-relaxed text-neutral-400">No response yet. Ask a question to request a real local Gemma response. If Gemma is unavailable, you’ll see its connection status.</p>;
   }
-
   if (coaching.status === "unavailable") {
-    return (
-      <div className="rounded-lg border border-[#e2d8c8] bg-[#fbf7f0] p-3 text-sm">
-        <p className="flex items-center gap-2 font-medium">
-          <AlertTriangle className="h-4 w-4 text-[#8a6a2f]" />
-          Gemma no ha contestado
-        </p>
-        <p className="mt-1 text-[#4a433b]">{coaching.detail}</p>
-        <p className="mt-2 font-mono text-xs text-[#6b6258]">ollama pull gemma3:1b</p>
-      </div>
-    );
+    return <div role="status" className="coaching-result"><p className="flex items-center gap-2 text-sm"><AlertTriangle size={16} /> Gemma did not respond</p><p className="mt-3 text-sm leading-relaxed text-neutral-400">{coaching.detail}</p></div>;
   }
-
   if (coaching.status === "ungrounded") {
-    return (
-      <div className="rounded-lg border border-[#e3a2a2] bg-[#fdf2f2] p-3 text-sm text-[#9b2c2c]">
-        {coaching.text}
-      </div>
-    );
+    return <div role="status" className="coaching-result text-sm leading-relaxed">{coaching.text}</div>;
   }
-
-  return (
-    <div className="rounded-lg border border-[#9cc9b4] bg-[#f3faf6] p-3 text-sm text-[#1f5c45]">
-      <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-        <CheckCircle2 className="h-4 w-4" />
-        Lectura anclada a cifras locales · {coaching.model}
-      </p>
-      <p className="whitespace-pre-wrap text-[#1f1a14]">{coaching.text}</p>
-    </div>
-  );
+  return <div role="status" className="coaching-result"><p className="mb-3 flex items-center gap-2 text-xs text-neutral-400"><CheckCircle2 size={14} /> Figures checked against local data · {coaching.model}</p><p className="whitespace-pre-wrap text-sm leading-relaxed">{coaching.text}</p></div>;
 }

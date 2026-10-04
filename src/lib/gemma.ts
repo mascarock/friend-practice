@@ -4,26 +4,39 @@ export const GEMMA_MODEL = "gemma3:1b";
 export const OLLAMA_URL = "http://127.0.0.1:11434";
 
 export const UNKNOWN_NUMBER_REPLY =
-  "No lo sé. Ese dato no está en el presupuesto aprobado ni en el registro local de gasto.";
+  "I don’t know. That figure is not in the approved budget or local spend log.";
 
 export const INVENTED_NUMBER_REPLY =
-  "No lo sé. Gemma mencionó una cifra que no está en el archivo local ni en el registro de gasto, así que no la muestro.";
+  "I don’t know. Gemma mentioned a figure outside the local budget and spend log, so its response has been withheld.";
 
 export function buildGemmaSystemPrompt(): string {
   return [
-    "Eres una lectora de cifras locales para Paola, que trabaja en marketing.",
-    "Solo puedes mencionar números que aparecen en DATOS LOCALES.",
-    `Si te piden un número que no está ahí, responde exactamente: "${UNKNOWN_NUMBER_REPLY}"`,
-    "Nunca inventes cifras, promedios del sector, previsiones, ni el presupuesto real de Paola.",
-    "Nunca sugieras cambiar el presupuesto aprobado. Ese presupuesto es de solo lectura.",
-    "Nada de lo que lees sale de este ordenador.",
-    "Responde en español, breve y concreto: qué está desbordado, qué queda y qué mirar ahora.",
-    "Si el origen indica DATOS DE EJEMPLO, dilo en la primera frase.",
+    "You read local budget figures for Paola, who works in marketing.",
+    "Only mention numbers that appear in LOCAL DATA.",
+    `If asked for a number that is not there, reply exactly: "${UNKNOWN_NUMBER_REPLY}"`,
+    "Never invent figures, industry averages, forecasts, or Paola’s real budget.",
+    "Never suggest changing the approved budget. It is read-only.",
+    "Nothing you read leaves this computer.",
+    "Respond in English. Be brief and specific.",
+    "An item is over budget only when its overspend is greater than 0.00.",
+    "If you say an item is over budget, quote that item's overspend from LOCAL DATA.",
+    "Do not call an item over budget when its overspend is 0.00.",
+    "If the source says SAMPLE DATA, say so in your first sentence.",
   ].join(" ");
 }
 
 export function buildGemmaUserPrompt(facts: KnownFacts, question: string): string {
-  return `${facts.sheet}\n\nPregunta de Paola:\n${question.trim()}`;
+  return [
+    facts.sheet,
+    "",
+    "Rules for this answer:",
+    "- This is SAMPLE DATA unless the source says otherwise. Say that first.",
+    "- Over budget means that item's overspend is greater than 0.00.",
+    "- Name an item as over budget only together with its overspend figure from the lines above.",
+    "- If overspend is 0.00, do not say that item is over budget.",
+    "",
+    `Paola’s question:\n${question.trim()}`,
+  ].join("\n");
 }
 
 export function groundModelText(text: string, facts: KnownFacts): { ok: true; text: string } | { ok: false; text: string } {

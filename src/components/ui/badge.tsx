@@ -11,16 +11,16 @@ export function Badge({
   children: ReactNode;
 }) {
   const tones = {
-    neutral: "bg-[#efe7d8] text-[#3a3228]",
-    sample: "bg-[#f3d2b0] text-[#7a3e0c] border border-[#e09a55]",
-    locked: "bg-[#f0e4c4] text-[#6d5420] border border-[#d9c48a]",
-    ok: "bg-[#d8eee3] text-[#1f5c45] border border-[#9cc9b4]",
-    over: "bg-[#f6d6d6] text-[#9b2c2c] border border-[#e3a2a2]",
-    local: "bg-[#1f1a14] text-[#f4efe6]",
+    neutral: "border-neutral-600 text-neutral-300",
+    sample: "border-neutral-300 text-white",
+    locked: "border-neutral-600 text-neutral-300",
+    ok: "border-neutral-300 text-white",
+    over: "border-neutral-300 text-white",
+    local: "border-neutral-600 text-neutral-300",
   };
 
   return (
-    <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", tones[tone], className)}>
+    <span className={cn("inline-flex shrink-0 items-center border px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest", tones[tone], className)}>
       {children}
     </span>
   );

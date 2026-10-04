@@ -50,7 +50,7 @@ export async function POST(request: Request): Promise<NextResponse<GemmaResponse
   const question = body.question?.trim() ?? "";
   if (!question || !isKnownFacts(body.facts)) {
     return NextResponse.json(
-      { status: "unavailable", reason: "empty", detail: "Faltan la pregunta o los datos locales." },
+      { status: "unavailable", reason: "empty", detail: "A question and local data are required." },
       { status: 400 },
     );
   }
@@ -79,7 +79,7 @@ export async function POST(request: Request): Promise<NextResponse<GemmaResponse
         {
           status: "unavailable",
           reason: "model_missing",
-          detail: `Ollama está en este ordenador, pero falta el modelo ${GEMMA_MODEL}. Ejecuta: ollama pull gemma3:1b`,
+          detail: `Ollama is running locally, but ${GEMMA_MODEL} is not installed. To install it, run: ollama pull gemma3:1b`,
         },
         { status: 503 },
       );
@@ -90,7 +90,7 @@ export async function POST(request: Request): Promise<NextResponse<GemmaResponse
         {
           status: "unavailable",
           reason: "ollama_unreachable",
-          detail: `Ollama respondió ${response.status}.`,
+          detail: `Ollama returned status ${response.status}.`,
         },
         { status: 503 },
       );
@@ -118,8 +118,8 @@ export async function POST(request: Request): Promise<NextResponse<GemmaResponse
         status: "unavailable",
         reason: timeout ? "timeout" : "ollama_unreachable",
         detail: timeout
-          ? "Ollama no respondió a tiempo. El presupuesto y el gasto siguen siendo locales."
-          : "Gemma no está en este ordenador. Instala Ollama y ejecuta: ollama pull gemma3:1b",
+          ? "Ollama did not respond in time. Your budget and spending remain local."
+          : "Could not reach local Ollama. Start Ollama with gemma3:1b installed, then try again.",
       },
       { status: 503 },
     );

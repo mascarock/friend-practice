@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next-desktop/
 /out/
 
 # production
@@ -43,3 +44,6 @@ next-env.d.ts
 # local agent scratch
 /agent-tools
 
+
+# Electron build output
+/dist/

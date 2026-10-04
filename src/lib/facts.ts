@@ -41,41 +41,41 @@ export function collectKnownFacts(ledger: Ledger): KnownFacts {
   const keys = [...new Set(unique.flatMap((value) => canonicalKeys(value)))];
 
   const origin = ledger.budget.isSample
-    ? `${SAMPLE_ORIGIN} — no es el presupuesto real de Paola. Archivo: ${ledger.budget.fileName}`
-    : `CSV local de solo lectura: ${ledger.budget.fileName}`;
+    ? `${SAMPLE_ORIGIN} — not Paola’s real budget. File: ${ledger.budget.fileName}`
+    : `Read-only local CSV: ${ledger.budget.fileName}`;
 
   const partidas = ledger.lines
     .map((row) => {
-      return `- ${row.line.categoria} / ${row.line.partida} | aprobado ${row.line.aprobado.toFixed(2)} | gastado ${row.gastado.toFixed(2)} | restante ${row.restante.toFixed(2)} | desvio ${row.desvio.toFixed(2)} | uso ${row.porcentajeUso.toFixed(2)}%`;
+      return `- ${row.line.categoria} / ${row.line.partida} | approved ${row.line.aprobado.toFixed(2)} | spent ${row.gastado.toFixed(2)} | remaining ${row.restante.toFixed(2)} | overspend ${row.desvio.toFixed(2)} | used ${row.porcentajeUso.toFixed(2)}%`;
     })
     .join("\n");
 
   const gastos =
     ledger.spends.length === 0
-      ? "- (no hay gastos registrados)"
+      ? "- (no spending recorded)"
       : ledger.spends
           .map((spend) => {
             const line = ledger.budget.lines.find((item) => item.id === spend.lineId);
             const label = line ? `${line.categoria} / ${line.partida}` : spend.lineId;
-            const sample = spend.isSample ? " [DATOS DE EJEMPLO]" : "";
-            const nota = spend.nota ? ` | nota: ${spend.nota}` : "";
+            const sample = spend.isSample ? " [SAMPLE DATA]" : "";
+            const nota = spend.nota ? ` | note: ${spend.nota}` : "";
             return `- ${spend.timestamp.slice(0, 10)} | ${label} | ${spend.importe.toFixed(2)}${sample}${nota}`;
           })
           .join("\n");
 
   const sheet = [
-    "DATOS LOCALES (únicas cifras que puedes mencionar):",
-    `Origen: ${origin}`,
-    `Partidas: ${ledger.lines.length}`,
-    `Presupuesto aprobado total: ${ledger.totalAprobado.toFixed(2)}`,
-    `Gastado total: ${ledger.totalGastado.toFixed(2)}`,
-    `Restante total: ${ledger.totalRestante.toFixed(2)}`,
-    `Desvío total: ${ledger.totalDesvio.toFixed(2)}`,
+    "LOCAL DATA (the only figures you may mention):",
+    `Source: ${origin}`,
+    `Budget items: ${ledger.lines.length}`,
+    `Total approved budget: ${ledger.totalAprobado.toFixed(2)}`,
+    `Total spent: ${ledger.totalGastado.toFixed(2)}`,
+    `Total remaining: ${ledger.totalRestante.toFixed(2)}`,
+    `Total overspend: ${ledger.totalDesvio.toFixed(2)}`,
     "",
-    "Partidas:",
+    "Budget items:",
     partidas,
     "",
-    "Gastos registrados:",
+    "Recorded spending:",
     gastos,
   ].join("\n");
 

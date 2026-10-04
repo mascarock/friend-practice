@@ -43,7 +43,7 @@ export type Ledger = {
   readonly totalDesvio: number;
 };
 
-export const SAMPLE_ORIGIN = "DATOS DE EJEMPLO";
+export const SAMPLE_ORIGIN = "SAMPLE DATA";
 
 const HEADER_ALIASES: Record<string, "categoria" | "partida" | "aprobado" | "origen"> = {
   categoria: "categoria",
@@ -70,7 +70,7 @@ export class BudgetParseError extends Error {
 }
 
 export class ImmutableBudgetError extends Error {
-  constructor(message = "El presupuesto aprobado no se puede modificar.") {
+  constructor(message = "The approved budget cannot be changed.") {
     super(message);
     this.name = "ImmutableBudgetError";
   }
@@ -167,7 +167,7 @@ export function parseApprovedBudgetCsv(raw: string, fileName: string): ApprovedB
   const text = raw.replace(/^\uFEFF/, "");
   const physicalLines = text.split(/\r?\n/).filter((line) => line.trim() !== "" && !line.trim().startsWith("#"));
   if (physicalLines.length < 2) {
-    throw new BudgetParseError("El CSV no tiene cabecera y filas. Exporta el presupuesto aprobado desde Power BI.");
+    throw new BudgetParseError("The CSV needs a header and at least one budget row. Choose an approved budget CSV.");
   }
 
   const delimiter = detectDelimiter(physicalLines[0]);
@@ -183,7 +183,7 @@ export function parseApprovedBudgetCsv(raw: string, fileName: string): ApprovedB
 
   if (index.categoria === undefined || index.partida === undefined || index.aprobado === undefined) {
     throw new BudgetParseError(
-      "Faltan columnas. Se espera: categoria, partida, presupuesto_aprobado (origen es opcional).",
+      "Missing columns. Expected: category, item, approved_budget (source is optional). Spanish column headers are also supported.",
     );
   }
 
@@ -198,15 +198,15 @@ export function parseApprovedBudgetCsv(raw: string, fileName: string): ApprovedB
     const origen = (index.origen !== undefined ? cells[index.origen]?.trim() : "") || "";
 
     if (!categoria || !partida) {
-      throw new BudgetParseError(`La fila ${rowIndex + 2} no tiene categoría o partida.`);
+      throw new BudgetParseError(`Row ${rowIndex + 2} is missing a category or item.`);
     }
 
     const aprobado = parseLocaleNumber(aprobadoRaw);
     if (aprobado === null) {
-      throw new BudgetParseError(`La fila ${rowIndex + 2} no tiene un presupuesto aprobado numérico.`);
+      throw new BudgetParseError(`Row ${rowIndex + 2} needs a numeric approved budget.`);
     }
     if (aprobado < 0) {
-      throw new BudgetParseError(`La fila ${rowIndex + 2} tiene un presupuesto aprobado negativo.`);
+      throw new BudgetParseError(`Row ${rowIndex + 2} has a negative approved budget.`);
     }
 
     origenes.push(origen);
@@ -214,7 +214,7 @@ export function parseApprovedBudgetCsv(raw: string, fileName: string): ApprovedB
   });
 
   if (parsedLines.length === 0) {
-    throw new BudgetParseError("El CSV no contiene partidas.");
+    throw new BudgetParseError("The CSV contains no budget items.");
   }
 
   return freezeApprovedBudget({
@@ -243,7 +243,7 @@ export function computeLedger(budget: ApprovedBudget, spends: readonly SpendEntr
   const allowedIds = new Set(budget.lines.map((line) => line.id));
   for (const spend of spends) {
     if (!allowedIds.has(spend.lineId)) {
-      throw new BudgetParseError("Hay un gasto sobre una partida que no existe en el presupuesto aprobado.");
+      throw new BudgetParseError("A spend entry refers to an item that does not exist in the approved budget.");
     }
   }
 
@@ -290,8 +290,8 @@ export function createSpend(input: {
   timestamp?: string;
 }): SpendEntry {
   const importe = money(input.importe);
-  if (!(importe > 0)) {
-    throw new BudgetParseError("El importe del gasto tiene que ser mayor que 0.");
+  if (!Number.isFinite(importe) || !(importe > 0)) {
+    throw new BudgetParseError("Enter a finite spend amount greater than 0.");
   }
   return Object.freeze({
     id: input.id ?? `gasto-${crypto.randomUUID()}`,

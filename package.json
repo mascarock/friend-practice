@@ -6,8 +6,13 @@
     "dev": "NEXT_TELEMETRY_DISABLED=1 next dev -p 43127 --hostname 127.0.0.1",
     "build": "NEXT_TELEMETRY_DISABLED=1 next build",
     "start": "NEXT_TELEMETRY_DISABLED=1 next start -p 43127 --hostname 127.0.0.1",
-    "lint": "next lint",
-    "test": "vitest run"
+    "lint": "eslint src",
+    "test": "vitest run",
+    "build:mac": "npm run desktop:dmg",
+    "desktop": "electron .",
+    "desktop:pack": "node scripts/build-desktop.js --dir",
+    "desktop:dmg": "node scripts/build-desktop.js --mac dmg --arm64",
+    "desktop:verify": "node scripts/verify-desktop.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -24,10 +29,64 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "electron": "43.1.1",
+    "electron-builder": "26.15.3",
     "eslint": "^9",
     "eslint-config-next": "15.5.9",
+    "playwright-core": "1.62.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
+  },
+  "main": "desktop/main.mjs",
+  "description": "Five local budget bots. Sample data only. Gemma through local Ollama.",
+  "author": "Niccol\u00f2 Mascaro",
+  "build": {
+    "appId": "com.localcomputer.desktop",
+    "productName": "Local Computer",
+    "npmRebuild": false,
+    "asar": true,
+    "files": [
+      "desktop/**",
+      "package.json",
+      "!node_modules/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": [
+        "dmg"
+      ],
+      "icon": "build/icon.png",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "notarize": false
+    },
+    "dmg": {
+      "title": "Local Computer",
+      "artifactName": "Local-Computer.dmg",
+      "backgroundColor": "#111113",
+      "window": {
+        "width": 600,
+        "height": 400
+      },
+      "contents": [
+        {
+          "x": 150,
+          "y": 180,
+          "type": "file"
+        },
+        {
+          "x": 450,
+          "y": 180,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "afterPack": "scripts/after-pack.js"
   }
 }

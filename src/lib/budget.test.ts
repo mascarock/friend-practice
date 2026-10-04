@@ -19,7 +19,7 @@ describe("presupuesto restante", () => {
     const ledger = computeLedger(budget, spends);
 
     const google = ledger.lines.find((row) => row.line.partida === "Google Ads");
-    const feria = ledger.lines.find((row) => row.line.partida === "Feria Q4");
+    const feria = ledger.lines.find((row) => row.line.partida === "Q4 trade fair");
     const meta = ledger.lines.find((row) => row.line.partida === "Meta Ads");
 
     expect(google?.line.aprobado).toBe(5000);
@@ -59,7 +59,7 @@ describe("presupuesto restante", () => {
           nota: "no existe",
         }),
       ]),
-    ).toThrow(/no existe/);
+    ).toThrow(/does not exist/);
   });
 });
 
@@ -85,7 +85,7 @@ describe("presupuesto aprobado inmutable", () => {
     const spends = addSpend(
       budget,
       [],
-      createSpend({ lineId: budget.lines[0].id, importe: 250, nota: "DATOS DE EJEMPLO" }),
+      createSpend({ lineId: budget.lines[0].id, importe: 250, nota: "SAMPLE DATA" }),
     );
     const ledger = computeLedger(budget, spends);
 
@@ -128,7 +128,7 @@ describe("CSV de solo lectura", () => {
     const budget = parseApprovedBudgetCsv(SAMPLE_CSV, "sample-presupuesto.csv");
     expect(budget.isSample).toBe(true);
     expect(budget.lines).toHaveLength(5);
-    expect(budget.lines[0]?.origen).toBe("DATOS DE EJEMPLO");
+    expect(budget.lines[0]?.origen).toBe("SAMPLE DATA");
     expect(budget.lines.reduce((sum, line) => sum + line.aprobado, 0)).toBe(16700);
   });
 
@@ -145,7 +145,7 @@ describe("CSV de solo lectura", () => {
 
   it("no inventa filas ni rellena huecos", () => {
     expect(() => parseApprovedBudgetCsv("categoria,partida,presupuesto_aprobado\n", "vacio.csv")).toThrow(
-      /no tiene cabecera y filas|no contiene partidas/,
+      /needs a header|contains no budget items/,
     );
   });
 });

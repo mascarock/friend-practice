@@ -26,8 +26,8 @@ describe("ninguna cifra inventada", () => {
     expect(facts.numbers).toContain(16700);
     expect(facts.numbers).toContain(6900);
     expect(facts.numbers).toContain(9800);
-    expect(facts.sheet).toContain("DATOS DE EJEMPLO");
-    expect(facts.sheet).not.toMatch(/presupuesto real de Paola: \d/);
+    expect(facts.sheet).toContain("SAMPLE DATA");
+    expect(facts.sheet).not.toMatch(/Paola’s real budget: \d/);
     expect(facts.isSample).toBe(true);
 
     const mentionedInSheet = findInventedNumbers(facts.sheet, facts);
@@ -38,7 +38,7 @@ describe("ninguna cifra inventada", () => {
   it("acepta un texto que solo repite cifras locales", () => {
     const { facts } = sampleFacts();
     const text =
-      "DATOS DE EJEMPLO. Feria Q4 está desbordada: aprobado 4500,00, gastado 4700,00, desvío 200,00. Quedan 9800,00 en total.";
+      "SAMPLE DATA. Feria Q4 está desbordada: aprobado 4500,00, gastado 4700,00, desvío 200,00. Quedan 9800,00 en total.";
     expect(findInventedNumbers(text, facts)).toEqual([]);
     expect(groundModelText(text, facts)).toEqual({ ok: true, text });
   });
@@ -58,7 +58,7 @@ describe("ninguna cifra inventada", () => {
     const systemPrompt = buildGemmaSystemPrompt();
     const userPrompt = buildGemmaUserPrompt(facts, "¿Qué está desbordado y qué queda?");
     expect(systemPrompt).toContain(UNKNOWN_NUMBER_REPLY);
-    expect(systemPrompt).toMatch(/solo lectura/i);
+    expect(systemPrompt).toMatch(/read-only/i);
     expect(findInventedNumbers(`${systemPrompt}\n${userPrompt}`, facts)).toEqual([]);
     expect(userPrompt).toContain(facts.sheet);
     expect(userPrompt).not.toContain("99999");

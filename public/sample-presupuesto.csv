@@ -1,8 +1,8 @@
-# DATOS DE EJEMPLO — no es el presupuesto real de Paola
-# Formato de exportación local (Power BI → CSV). Esta app no se conecta a Power BI.
-origen,categoria,partida,presupuesto_aprobado
-DATOS DE EJEMPLO,Publicidad digital,Google Ads,5000
-DATOS DE EJEMPLO,Publicidad digital,Meta Ads,3200
-DATOS DE EJEMPLO,Eventos,Feria Q4,4500
-DATOS DE EJEMPLO,Contenido,Producción de vídeo,2800
-DATOS DE EJEMPLO,Herramientas,Software de marketing,1200
+# SAMPLE DATA — not Paola’s real budget
+# Local CSV sample. This app has no Power BI connection.
+source,category,item,approved_budget
+SAMPLE DATA,Digital advertising,Google Ads,5000
+SAMPLE DATA,Digital advertising,Meta Ads,3200
+SAMPLE DATA,Events,Q4 trade fair,4500
+SAMPLE DATA,Content,Video production,2800
+SAMPLE DATA,Tools,Marketing software,1200

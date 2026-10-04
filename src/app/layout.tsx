@@ -1,32 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { DM_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm",
-  subsets: ["latin"],
-});
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Presupuesto local · para Paola",
-  description:
-    "Control local del presupuesto aprobado exportado de Power BI. El gasto se anota en este ordenador. Nada se envía fuera.",
+  title: "Local Budget · Paola",
+  description: "Your approved budget, local spending, and remaining balance. Everything stays on this computer.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: ReactNode;
-}>) {
-  return (
-    <html lang="es">
-      <body className={`${dmSans.variable} ${fraunces.variable} antialiased`}>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  return <html lang="en"><body className="antialiased">{children}</body></html>;
 }

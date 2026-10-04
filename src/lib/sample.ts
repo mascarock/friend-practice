@@ -2,14 +2,14 @@ import { createSpend, freezeApprovedBudget, type ApprovedBudget, type SpendEntry
 
 export const SAMPLE_FILE_NAME = "sample-presupuesto.csv";
 
-export const SAMPLE_CSV = `# DATOS DE EJEMPLO — no es el presupuesto real de Paola
-# Formato de exportación local (Power BI → CSV). Esta app no se conecta a Power BI.
-origen,categoria,partida,presupuesto_aprobado
-DATOS DE EJEMPLO,Publicidad digital,Google Ads,5000
-DATOS DE EJEMPLO,Publicidad digital,Meta Ads,3200
-DATOS DE EJEMPLO,Eventos,Feria Q4,4500
-DATOS DE EJEMPLO,Contenido,Producción de vídeo,2800
-DATOS DE EJEMPLO,Herramientas,Software de marketing,1200
+export const SAMPLE_CSV = `# SAMPLE DATA — not Paola’s real budget
+# Local CSV sample. This app has no Power BI connection.
+source,category,item,approved_budget
+SAMPLE DATA,Digital advertising,Google Ads,5000
+SAMPLE DATA,Digital advertising,Meta Ads,3200
+SAMPLE DATA,Events,Q4 trade fair,4500
+SAMPLE DATA,Content,Video production,2800
+SAMPLE DATA,Tools,Marketing software,1200
 `;
 
 export function createSampleBudget(): ApprovedBudget {
@@ -19,34 +19,34 @@ export function createSampleBudget(): ApprovedBudget {
     importedAt: "2026-10-03T00:00:00.000Z",
     lines: [
       {
-        categoria: "Publicidad digital",
+        categoria: "Digital advertising",
         partida: "Google Ads",
         aprobado: 5000,
-        origen: "DATOS DE EJEMPLO",
+        origen: "SAMPLE DATA",
       },
       {
-        categoria: "Publicidad digital",
+        categoria: "Digital advertising",
         partida: "Meta Ads",
         aprobado: 3200,
-        origen: "DATOS DE EJEMPLO",
+        origen: "SAMPLE DATA",
       },
       {
-        categoria: "Eventos",
-        partida: "Feria Q4",
+        categoria: "Events",
+        partida: "Q4 trade fair",
         aprobado: 4500,
-        origen: "DATOS DE EJEMPLO",
+        origen: "SAMPLE DATA",
       },
       {
-        categoria: "Contenido",
-        partida: "Producción de vídeo",
+        categoria: "Content",
+        partida: "Video production",
         aprobado: 2800,
-        origen: "DATOS DE EJEMPLO",
+        origen: "SAMPLE DATA",
       },
       {
-        categoria: "Herramientas",
-        partida: "Software de marketing",
+        categoria: "Tools",
+        partida: "Marketing software",
         aprobado: 1200,
-        origen: "DATOS DE EJEMPLO",
+        origen: "SAMPLE DATA",
       },
     ],
   });
@@ -56,7 +56,7 @@ export function createSampleSpends(budget: ApprovedBudget): SpendEntry[] {
   const byPartida = (partida: string) => {
     const line = budget.lines.find((item) => item.partida === partida);
     if (!line) {
-      throw new Error(`Partida de ejemplo no encontrada: ${partida}`);
+      throw new Error(`Sample item not found: ${partida}`);
     }
     return line.id;
   };
@@ -67,23 +67,23 @@ export function createSampleSpends(budget: ApprovedBudget): SpendEntry[] {
       timestamp: "2026-09-12T09:00:00.000Z",
       lineId: byPartida("Google Ads"),
       importe: 1800,
-      nota: "DATOS DE EJEMPLO — campaña de prueba",
+      nota: "SAMPLE DATA — test campaign",
       isSample: true,
     }),
     createSpend({
       id: "sample-spend-2",
       timestamp: "2026-09-20T11:30:00.000Z",
-      lineId: byPartida("Feria Q4"),
+      lineId: byPartida("Q4 trade fair"),
       importe: 4700,
-      nota: "DATOS DE EJEMPLO — stand y desplazamiento",
+      nota: "SAMPLE DATA — stand and travel",
       isSample: true,
     }),
     createSpend({
       id: "sample-spend-3",
       timestamp: "2026-09-28T16:15:00.000Z",
-      lineId: byPartida("Producción de vídeo"),
+      lineId: byPartida("Video production"),
       importe: 400,
-      nota: "DATOS DE EJEMPLO — primer corte",
+      nota: "SAMPLE DATA — first cut",
       isSample: true,
     }),
   ];

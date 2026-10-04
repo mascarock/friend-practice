@@ -34,8 +34,8 @@ export function formatMoney(value: number): string {
   const sign = value < 0 ? "-" : "";
   const abs = money(Math.abs(value));
   const [whole, fraction = "00"] = abs.toFixed(2).split(".");
-  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  return `${sign}${grouped},${fraction}`;
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${sign}${grouped}.${fraction}`;
 }
 
 export function canonicalKeys(value: number): string[] {
