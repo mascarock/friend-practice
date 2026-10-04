@@ -4,6 +4,18 @@ A local budget app for Paola in marketing. Import an approved CSV, record spendi
 
 The interface uses a near-black background, white type, large totals, thin rules, and open space. All interface copy, validation messages, sample data, and Gemma instructions are in English.
 
+## Preview
+
+[![Local Computer walkthrough (Ledger chat, sample data)](docs/screenshots/02-ledger.png)](docs/Local-Computer-color-walkthrough.mp4)
+
+![Ledger, Meta Ads approved 3,200](docs/screenshots/02-ledger.png)
+
+![Watcher, only the Q4 trade fair, over by 200](docs/screenshots/03-watcher-answer.png)
+
+![Note, approved 16,700, spent 4,700, remaining 12,000](docs/screenshots/05-note.png)
+
+![Clerk, sample spend saved, approved amount unchanged](docs/screenshots/06-clerk.png)
+
 ## Context
 
 Local Computer is a Mac-only budget companion for a marketer (Paola) who wants spend checked against an approved budget without the numbers leaving the computer. The demo uses labeled sample data, not her real budget. The approved total in the sample stays 16,700.
