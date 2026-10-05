@@ -4,6 +4,8 @@ A local budget app for Paola in marketing. Import an approved CSV, record spendi
 
 The interface uses a near-black background, white type, large totals, thin rules, and open space. All interface copy, validation messages, sample data, and Gemma instructions are in English.
 
+For judges: [JUDGE.md](JUDGE.md) is the 60-second path. The Gemma guardrail proof is in [docs/proof](docs/proof): `npm run proof:note-guard` accepts the grounded Note sentence and withholds wrong-item and wrong-number sentences.
+
 ## Preview
 
 [![Local Computer walkthrough (Ledger chat, sample data)](docs/screenshots/02-ledger.png)](docs/Local-Computer-color-walkthrough.mp4)
@@ -26,7 +28,7 @@ Five assistants, each a chat:
 - Clerk logs one spend on an existing line.
 - Watcher names a line only when spent is above approved, and that math is code.
 - Remainder shows approved, spent, and remaining.
-- Note asks local Gemma (Ollama on 127.0.0.1) for one sentence and withholds it if it names the wrong item or a number that is not in the tool result.
+- Note asks local Gemma (`gemma3:1b` through Ollama on `127.0.0.1:11434`) for one sentence and withholds it if it names the wrong item or a number that is not in the tool result.
 
 In the published demo only the Q4 trade fair is over, by 200. The video is the color walkthrough: [Local-Computer-color-walkthrough.mp4](docs/Local-Computer-color-walkthrough.mp4). The 11:21 proof screenshots are linked under [Local Computer for macOS](#local-computer-for-macos).
 
@@ -66,7 +68,9 @@ The [downloadable sample](public/sample-presupuesto.csv) has the same approved a
 
 ## Optional local Gemma
 
-Gemma (`gemma3:1b`) reads the local CSV and spend log through Ollama at `127.0.0.1:11434`. The prompt requests English and instructs the model to acknowledge unknown figures. Responses containing numbers outside the known local figures are withheld. This numeric check does not validate every statement a model might make.
+Gemma (`gemma3:1b`) reads the local CSV and spend log through Ollama at `127.0.0.1:11434`. The prompt requests English and instructs the model to copy only the computed facts. Note then runs `withholdNarration`: it shows only a one-sentence narration that matches the tool result, otherwise it shows the computed result with a withholding notice.
+
+Guardrail proof is committed in [docs/proof/note-guard-proof.txt](docs/proof/note-guard-proof.txt). The fixture accepts `SAMPLE DATA: the Q4 trade fair is over budget by 200.`, withholds `Google Ads is over budget by 200` as `not_over_budget`, and withholds `Q4 trade fair is over budget by 300` as `invented_figure`.
 
 Install Ollama and download the model separately if desired:
 

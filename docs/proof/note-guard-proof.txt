@@ -1,0 +1,37 @@
+Note Gemma Guard Proof
+======================
+
+Command:
+  npm run proof:note-guard
+
+This fixture uses the real Note tool result and the same withholdNarration guard used by the local app.
+No model output is mocked as accepted: the candidate sentences below are checked exactly as Gemma sentences are checked before display.
+
+Tool result computed in code:
+  bot: note
+  sample: true
+  source: sample-presupuesto.csv
+  approved total: 16700
+  spent total: 6900
+  remaining total: 9800
+  over-budget lines:
+    - Events / Q4 trade fair: approved 4500, spent 4700, over 200
+
+Checked candidate sentences:
+  - accepts grounded sentence
+    sentence: SAMPLE DATA: the Q4 trade fair is over budget by 200.
+    guard status: narrated
+    guard reason: accepted
+    shown to Paola: SAMPLE DATA: the Q4 trade fair is over budget by 200.
+  - withholds wrong item
+    sentence: SAMPLE DATA: Google Ads is over budget by 200.
+    guard status: withheld
+    guard reason: not_over_budget
+    shown to Paola: Withheld: Gemma called something over budget that the watcher did not list.
+  - withholds wrong number
+    sentence: SAMPLE DATA: the Q4 trade fair is over budget by 300.
+    guard status: withheld
+    guard reason: invented_figure
+    shown to Paola: Withheld: Gemma used a figure that is not in the tool result.
+
+Result: 1 accepted, 2 withheld. Wrong item and wrong number do not reach the UI as Gemma narration.

@@ -8,6 +8,7 @@
     "start": "NEXT_TELEMETRY_DISABLED=1 next start -p 43127 --hostname 127.0.0.1",
     "lint": "eslint src",
     "test": "vitest run",
+    "proof:note-guard": "vitest run scripts/prove-note-guard.test.ts --reporter=verbose",
     "build:mac": "npm run desktop:dmg",
     "desktop": "electron .",
     "desktop:pack": "node scripts/build-desktop.js --dir",
